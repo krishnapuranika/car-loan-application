@@ -15,5 +15,5 @@ Choose the guide that matches what you are looking for:
 | Set up, build, or deploy the application | [Technical Documentation](docs/TECHNICAL.md) |
 | Read the API reference | [Technical Documentation → API Reference](docs/TECHNICAL.md#api-reference) |
 | Understand the test suite | [Technical Documentation → Testing](docs/TECHNICAL.md#testing) |
-| Screenshots of application pages | [screenshots](docs/car-loan-application-poc-screenshots.pdf) |
+| Screenshots of application pages | [screenshots](docs/screenshots.pdf) |
 
