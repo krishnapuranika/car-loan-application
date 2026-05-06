@@ -321,6 +321,15 @@ npm test
 
 # Frontend — with coverage report
 npm run test:coverage
+
+# E2E — requires backend (:8080) and frontend (:5173) already running
+cd e2e && mvn test
+
+# E2E — with visible browser window
+cd e2e && mvn test -Dheadless=false
+
+# E2E — against a different base URL
+cd e2e && mvn test -Dbase.url=http://localhost:3000
 ```
 
 ### Backend test suite — 24 tests
@@ -427,6 +436,88 @@ Verifies heading, both action cards render with correct link targets, and all th
 | Clears previous results before new lookup | First result disappears after second (failed) search |
 | Auto-loads from `?id=` URL param | `trackApplication` is called with the URL param value |
 | Pre-fills input from `?id=` URL param | Input value matches the URL param |
+
+---
+
+## E2E Test Suite (Selenium + Cucumber)
+
+End-to-end browser tests live in `e2e/` — a standalone Maven project separate from the Spring Boot backend.
+
+### Technology
+
+| Tool | Version | Purpose |
+|------|---------|---------|
+| Cucumber (JUnit Platform engine) | 7.15.0 | BDD framework and Gherkin feature files |
+| Selenium WebDriver | 4.18.1 | Browser automation |
+| WebDriverManager | 5.8.0 | Automatic ChromeDriver management |
+| PicoContainer | 7.15.0 | Dependency injection between step classes |
+
+### Structure
+
+```
+e2e/
+├── pom.xml
+└── src/test/
+    ├── java/com/carloan/e2e/
+    │   ├── CucumberRunner.java          — @Suite entry point
+    │   ├── context/  ScenarioContext    — shared WebDriver + trackingId per scenario
+    │   ├── hooks/    Hooks              — @Before Chrome setup, @After screenshot on failure
+    │   ├── pages/    BasePage, HomePage, ApplyPage, TrackPage (Page Object Model)
+    │   └── steps/    CommonSteps, HomePageSteps, ApplyPageSteps, TrackPageSteps
+    └── resources/
+        ├── junit-platform.properties
+        └── features/
+            ├── home_page.feature
+            ├── apply_loan.feature
+            └── track_application.feature
+```
+
+### Running the E2E tests
+
+Both the backend and frontend must be running before executing E2E tests.
+
+```bash
+# Terminal 1 — backend
+cd backend && mvn spring-boot:run
+
+# Terminal 2 — frontend
+cd frontend && npm run dev
+
+# Terminal 3 — E2E tests (headless Chrome)
+cd e2e && mvn test
+
+# With a visible browser window
+cd e2e && mvn test -Dheadless=false
+
+# Against a different base URL (e.g. staging)
+cd e2e && mvn test -Dbase.url=http://localhost:3000
+```
+
+HTML report is generated at `e2e/target/cucumber-report.html`.
+
+### Scenarios — 7 total
+
+#### `home_page.feature` (3 scenarios)
+
+| Scenario | What it verifies |
+|----------|-----------------|
+| Home page displays both action cards | Both "Apply for a Loan" and "Track Your Application" cards are visible |
+| Navigate to Apply page | Clicking the Apply card opens `/apply` with correct heading |
+| Navigate to Track page | Clicking the Track card opens `/track` with correct heading |
+
+#### `apply_loan.feature` (2 scenarios)
+
+| Scenario | What it verifies |
+|----------|-----------------|
+| Full loan application submission | 3-step form completes successfully, "Application Submitted!" shown, `CAR-` tracking ID displayed |
+| Validation errors on empty step 1 | Clicking Continue without input shows at least one validation error |
+
+#### `track_application.feature` (2 scenarios)
+
+| Scenario | What it verifies |
+|----------|-----------------|
+| Track a submitted application | After submitting, entering the tracking ID shows applicant name and "Submitted" status |
+| Unknown tracking ID shows error | Entering a non-existent tracking ID displays an error message |
 
 ---
 
